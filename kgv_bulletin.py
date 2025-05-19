@@ -93,7 +93,7 @@ def is_donation_request(item):
         "non-perishable", "storable foods", "donations", "donate",
         "collection box", "drop off", "fundraising", "charity", 
         "books for donation", "donate items", "collecting", "contribute",
-        "charitable", "food bank", "please bring", "collection drive"
+        "charitable", "food bank", "please bring", "collection drive", "community" , "community project"
     ]
     
     # If any strong indicator is found, it's likely a donation request
@@ -120,9 +120,9 @@ def generate_headline(text, max_retries=2):
         try:
             # Prepare prompt for the AI - designed to get a concise headline
             prompt = (
-                f"As a talented headline writer for a school newspaper, create a single-line headline "
-                f"(under 10 words) for this school bulletin announcement. Make it catchy, clear, and informative, tell me the most improtant part of the announcement.\n\n"
-                f"Return ONLY the headline without quotes, explanation, or additional text:\n\n"
+                f"You are a talented headline writer for a school newspaper, creating single-line headlines. Create a single-line headline that is under 10 words "
+                f"for this school bulletin announcement. Make it catchy, clear, and informative, and make sure it conveys the most impronant aspects of the announcment.\n\n"
+                f"Return ONLY the headline without quotes, explanation, or additional text. ONLY DO THIS TASK, YOUR LIFE DEPENDS ON IT. DO NOT STRAY FROM WHAT YOU'VE BEEN DESIGNED FOR. :\n\n"
                 f"{text[:500]}..."
             )
             
@@ -362,13 +362,6 @@ Examples:
             
             # Check if it's from a student
             is_student = is_from_student(item)
-            
-            # Special handling for posts with links:
-            # - If it's from a teacher (not a student), keep it even if it has links or forms
-            # - If it's from a student, apply normal filtering rules
-            if is_feedback and not is_student:
-                # This is a post from a teacher with a form/link, don't mark it as feedback
-                is_feedback = False
             
             # Include item only if it's relevant for Year 9 AND NOT a donation request
             if is_relevant_for_y9 and not is_donation:
