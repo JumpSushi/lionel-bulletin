@@ -1,0 +1,1544 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - KGV Bulletin Service{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Admin Dashboard</h2>
+            <p class="text-muted">Manage users, bulletins, and system settings</p>
+        </div>
+    </div>
+
+    <div id="admin-content" style="display: none;">
+    <!-- Admin Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                    <div class="h5 mb-1" id="totalUsers">0</div>
+                    <div class="small text-muted">Total Users</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-envelope fa-2x text-muted mb-2"></i>
+                    <div class="h5 mb-1" id="totalSubscribers">0</div>
+                    <div class="small text-muted">Subscribers</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-newspaper fa-2x text-muted mb-2"></i>
+                    <div class="h5 mb-1" id="totalBulletins">0</div>
+                    <div class="small text-muted">Total Bulletins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-paper-plane fa-2x text-muted mb-2"></i>
+                    <div class="h5 mb-1" id="totalEmailsSent">0</div>
+                    <div class="small text-muted">Emails Sent</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-primary w-100" onclick="refreshBulletins()">
+                                <i class="fas fa-sync-alt"></i> Refresh Bulletins
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-success w-100" onclick="sendTestEmail()">
+                                <i class="fas fa-envelope"></i> Send Test Email
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-warning w-100" onclick="exportData()">
+                                <i class="fas fa-download"></i> Export Data
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-info w-100" onclick="viewLogs()">
+                                <i class="fas fa-list"></i> View Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bulletins-tab" data-bs-toggle="tab" data-bs-target="#bulletins" type="button" role="tab">
+                        <i class="fas fa-newspaper"></i> Bulletins
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="emails-tab" data-bs-toggle="tab" data-bs-target="#emails" type="button" role="tab">
+                        <i class="fas fa-envelope"></i> Email Logs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="filters-tab" data-bs-toggle="tab" data-bs-target="#filters" type="button" role="tab">
+                        <i class="fas fa-filter"></i> Bulletin Filters
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bulk-email-tab" data-bs-toggle="tab" data-bs-target="#bulk-email" type="button" role="tab">
+                        <i class="fas fa-mail-bulk"></i> Bulk Email
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab">
+                        <i class="fas fa-clipboard-list"></i> Audit Logs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="adminTabContent">
+                <!-- Users Tab -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">User Management</h6>
+                            <button class="btn btn-sm btn-primary" onclick="createUser()">
+                                <i class="fas fa-plus"></i> Add User
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="usersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- Users will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulletins Tab -->
+                <div class="tab-pane fade" id="bulletins" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Bulletin Management</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Year 9</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bulletinsTableBody">
+                                        <!-- Bulletins will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Logs Tab -->
+                <div class="tab-pane fade" id="emails" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Email Logs</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Recipient</th>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                            <th>Sent At</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="emailsTableBody">
+                                        <!-- Email logs will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulletin Filters Tab -->
+                <div class="tab-pane fade" id="filters" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">User Bulletin Filters</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Filter Name</th>
+                                            <th>Keywords</th>
+                                            <th>Categories</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="filtersTableBody">
+                                        <!-- Filters will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk Email Tab -->
+                <div class="tab-pane fade" id="bulk-email" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Filter Recipients</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="recipientFilterForm">
+                                        <div class="mb-3">
+                                            <label for="recipientKeywords" class="form-label">Keywords (search in name/email)</label>
+                                            <input type="text" class="form-control" id="recipientKeywords" 
+                                                   placeholder="Enter keywords separated by commas">
+                                            <div class="form-text">Search for users by name or email containing these keywords</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="adminOnlyFilter">
+                                                <label class="form-check-label" for="adminOnlyFilter">
+                                                    Admin users only
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="loadFilteredUsers()">
+                                            <i class="fas fa-search"></i> Find Users
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-3">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Recipients <span id="recipientCount" class="badge bg-primary">0</span></h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="selectAllRecipients()">
+                                            <i class="fas fa-check-square"></i> Select All
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="clearRecipientSelection()">
+                                            <i class="fas fa-square"></i> Clear All
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                    <div id="recipientsList">
+                                        <!-- Recipients will be loaded here -->
+                                        <p class="text-muted text-center">Use the filter above to find recipients</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Compose Email</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="bulkEmailForm">
+                                        <div class="mb-3">
+                                            <label for="emailSubject" class="form-label">Subject <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="emailSubject" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="emailContent" class="form-label">Content <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="emailContent" rows="10" required 
+                                                      placeholder="Enter your email content here..."></textarea>
+                                            <div class="form-text">HTML tags are supported</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Preview:</strong> <span id="selectedRecipientsPreview">No recipients selected</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-success w-100" onclick="sendBulkEmail()" id="sendBulkEmailBtn" disabled>
+                                            <i class="fas fa-paper-plane"></i> Send Bulk Email
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Logs Tab -->
+                <div class="tab-pane fade" id="audit" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Admin Action Audit Logs</h6>
+                            <div>
+                                <select class="form-select form-select-sm d-inline-block w-auto" id="auditActionFilter">
+                                    <option value="">All Actions</option>
+                                    <option value="create_user">Create User</option>
+                                    <option value="delete_user">Delete User</option>
+                                    <option value="toggle_admin_status">Toggle Admin</option>
+                                    <option value="deactivate_user">Deactivate User</option>
+                                    <option value="reactivate_user">Reactivate User</option>
+                                    <option value="delete_bulletin_filter">Delete Filter</option>
+                                    <option value="send_bulk_email">Send Bulk Email</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary ms-2" onclick="loadAuditLogs()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Admin</th>
+                                            <th>Action</th>
+                                            <th>Target User</th>
+                                            <th>Details</th>
+                                            <th>IP Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="auditTableBody">
+                                        <!-- Audit logs will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-pane fade" id="settings" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">System Settings</h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="settingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emailFrequency" class="form-label">Email Frequency</label>
+                                            <select class="form-select" id="emailFrequency">
+                                                <option value="daily">Daily</option>
+                                                <option value="weekly">Weekly</option>
+                                                <option value="monthly">Monthly</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="maxEmailsPerDay" class="form-label">Max Emails Per Day</label>
+                                            <input type="number" class="form-control" id="maxEmailsPerDay" value="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalTitle">Add User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <div class="mb-3">
+                        <label for="userUsername" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="userUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="userPassword">
+                        <div class="form-text">Leave blank to keep existing password</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userRole" class="form-label">Role</label>
+                        <select class="form-select" id="userRole">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Details Modal -->
+<div class="modal fade" id="filterDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Basic Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Filter ID:</strong></td>
+                                <td id="filterDetailId">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td id="filterDetailName">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>User:</strong></td>
+                                <td id="filterDetailUser">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td id="filterDetailStatus">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td id="filterDetailCreated">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Used:</strong></td>
+                                <td id="filterDetailLastUsed">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Filter Criteria</h6>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Keywords:</strong></label>
+                            <div id="filterDetailKeywords" class="form-control-plaintext">
+                                <!-- Keywords will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Categories:</strong></label>
+                            <div id="filterDetailCategories" class="form-control-plaintext">
+                                <!-- Categories will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Year Groups:</strong></label>
+                            <div id="filterDetailYearGroups" class="form-control-plaintext">
+                                <!-- Year groups will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="fw-bold">Usage Statistics</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary" id="filterUsageCount">0</h5>
+                                <p class="card-text small">Times Used</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success" id="filterMatchCount">0</h5>
+                                <p class="card-text small">Bulletins Matched</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-info" id="filterEfficiency">0%</h5>
+                                <p class="card-text small">Filter Efficiency</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" id="deleteFilterFromDetails" onclick="deleteFilterFromDetails()">
+                    <i class="fas fa-trash"></i> Delete Filter
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Admin unauthorized section -->
+    <div id="admin-unauthorized" class="d-none">
+        <div class="row">
+            <div class="col-md-8 mx-auto text-center">
+                <div class="card shadow-sm">
+                    <div class="card-body py-5">
+                        <h1 class="display-4 text-danger">403 Forbidden</h1>
+                        <p class="lead">You don't have permission to access the admin dashboard.</p>
+                        <hr>
+                        <div class="mt-4">
+                            <a href="/" class="btn btn-outline-secondary">
+                                <i class="fas fa-home"></i> Back to Home
+                            </a>
+                            <a href="/dashboard" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for the base template's authentication to be ready and retry if needed
+    checkAdminAccessWithRetry();
+});
+
+// Verify admin access with retry logic
+async function checkAdminAccessWithRetry(maxRetries = 10, currentTry = 0) {
+    console.log(`Admin access check attempt ${currentTry + 1}/${maxRetries}`);
+    
+    // Check if authentication is ready
+    const storedToken = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData');
+    
+    if (!storedToken || !userData) {
+        if (currentTry < maxRetries) {
+            // Wait and retry
+            setTimeout(() => {
+                checkAdminAccessWithRetry(maxRetries, currentTry + 1);
+            }, 300);
+            return;
+        } else {
+            console.log('No authentication found after retries, redirecting to login');
+            window.location.href = '/login';
+            return;
+        }
+    }
+    
+    // Parse user data and set global variables if not already set
+    try {
+        if (!currentUser && userData) {
+            currentUser = JSON.parse(userData);
+            authToken = storedToken;
+            console.log('Set currentUser for admin check:', currentUser.name);
+        }
+    } catch (e) {
+        console.error('Failed to parse user data:', e);
+        localStorage.clear();
+        window.location.href = '/login';
+        return;
+    }
+    
+    // Now check admin access
+    checkAdminAccess();
+}
+
+// Verify admin access before showing admin content
+async function checkAdminAccess() {
+    console.log('Checking admin access for user:', currentUser?.name || 'unknown');
+    console.log('User is admin:', currentUser?.is_admin || false);
+    
+    // Check if user is logged in
+    if (!currentUser) {
+        console.log('No user logged in, redirecting to login');
+        window.location.href = '/login';
+        return;
+    }
+    
+    // Check if user is an admin based on currentUser data
+    if (!currentUser.is_admin) {
+        console.log('User is not an admin, showing unauthorized message');
+        document.getElementById('admin-content').style.display = 'none';
+        document.getElementById('admin-unauthorized').classList.remove('d-none');
+        
+        // Redirect after 5 seconds
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 5000);
+        return;
+    }
+    
+    // User is an admin, show admin content and load data
+    console.log('Admin access granted, showing admin content');
+    document.getElementById('admin-content').style.display = 'block';
+    document.getElementById('admin-unauthorized').classList.add('d-none');
+    loadAdminData();
+}
+
+async function loadAdminData() {
+    // Check if we have authentication
+    if (!authToken) {
+        console.error('No auth token available');
+        window.location.href = '/login';
+        return;
+    }
+    
+    try {
+        await Promise.all([
+            loadAdminStats(),
+            loadUsers(),
+            loadBulletins(),
+            loadEmailLogs(),
+            loadBulletinFilters(),
+            loadAuditLogs()
+        ]);
+    } catch (error) {
+        console.error('Error loading admin data:', error);
+        showAlert('Error loading admin data', 'danger');
+    }
+}
+
+async function loadAdminStats() {
+    try {
+        const response = await fetch('/api/admin/stats', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const stats = await response.json();
+            document.getElementById('totalUsers').textContent = stats.total_users || 0;
+            document.getElementById('totalSubscribers').textContent = stats.total_subscribers || 0;
+            document.getElementById('totalBulletins').textContent = stats.total_bulletins || 0;
+            document.getElementById('totalEmailsSent').textContent = stats.total_emails_sent || 0;
+        }
+    } catch (error) {
+        console.error('Error loading admin stats:', error);
+    }
+}
+
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/admin/users', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayUsers(data.users || []);
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+}
+
+function displayUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td>${user.id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td><span class="badge bg-${user.is_admin ? 'danger' : 'primary'}">${user.is_admin ? 'admin' : 'user'}</span></td>
+            <td><span class="badge bg-${user.is_active ? 'success' : 'secondary'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-primary" onclick="editUser(${user.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${user.is_active ? 
+                        `<button class="btn btn-outline-warning" onclick="deactivateUser(${user.id})" title="Deactivate">
+                            <i class="fas fa-user-slash"></i>
+                        </button>` :
+                        `<button class="btn btn-outline-success" onclick="reactivateUser(${user.id})" title="Reactivate">
+                            <i class="fas fa-user-check"></i>
+                        </button>`
+                    }
+                    <button class="btn btn-outline-secondary" onclick="toggleAdminStatus(${user.id})" title="${user.is_admin ? 'Remove Admin' : 'Make Admin'}">
+                        <i class="fas fa-user-shield"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteUser(${user.id})" title="Delete" ${user.id === currentUser.id ? 'disabled' : ''}>
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function loadBulletins() {
+    try {
+        const response = await fetch('/api/admin/bulletins', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayBulletins(data.bulletins || []);
+        }
+    } catch (error) {
+        console.error('Error loading bulletins:', error);
+    }
+}
+
+function displayBulletins(bulletins) {
+    const tbody = document.getElementById('bulletinsTableBody');
+    tbody.innerHTML = bulletins.map(bulletin => `
+        <tr>
+            <td>${bulletin.id}</td>
+            <td>${bulletin.title || 'Untitled'}</td>
+            <td><span class="badge bg-secondary">${bulletin.category || 'General'}</span></td>
+            <td><i class="fas fa-${bulletin.is_year9 ? 'check text-success' : 'times text-muted'}"></i></td>
+            <td>${bulletin.date || 'N/A'}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="editBulletin(${bulletin.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="emailBulletin(${bulletin.id})">
+                    <i class="fas fa-envelope"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteBulletin(${bulletin.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function loadEmailLogs() {
+    try {
+        const response = await fetch('/api/admin/email-logs', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayEmailLogs(data.logs || []);
+        }
+    } catch (error) {
+        console.error('Error loading email logs:', error);
+    }
+}
+
+function displayEmailLogs(logs) {
+    const tbody = document.getElementById('emailsTableBody');
+    tbody.innerHTML = logs.map(log => `
+        <tr>
+            <td>${log.id}</td>
+            <td>${log.user_email || 'Unknown'}</td>
+            <td>${log.subject}</td>
+            <td><span class="badge bg-${log.status === 'sent' ? 'success' : 'danger'}">${log.status}</span></td>
+            <td>${new Date(log.sent_at).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-info" onclick="viewEmailContent(${log.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// User Management Functions
+function createUser() {
+    document.getElementById('userModalTitle').textContent = 'Add User';
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+
+async function editUser(userId) {
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userUsername').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userRole').value = user.is_admin ? 'admin' : 'user';
+            document.getElementById('userPassword').value = '';
+            new bootstrap.Modal(document.getElementById('userModal')).show();
+        }
+    } catch (error) {
+        console.error('Error loading user:', error);
+        showAlert('Error loading user data', 'danger');
+    }
+}
+
+async function saveUser() {
+    const userId = document.getElementById('userId').value;
+    const userData = {
+        name: document.getElementById('userUsername').value,
+        email: document.getElementById('userEmail').value,
+        is_admin: document.getElementById('userRole').value === 'admin'
+    };
+    
+    const password = document.getElementById('userPassword').value;
+    if (password) {
+        userData.password = password;
+    }
+    
+    try {
+        const url = userId ? `/api/admin/users/${userId}` : '/api/admin/users';
+        const method = userId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            await loadUsers();
+            await loadAdminStats();
+            showAlert('User saved successfully', 'success');
+        } else {
+            throw new Error('Failed to save user');
+        }
+    } catch (error) {
+        console.error('Error saving user:', error);
+        showAlert('Error saving user', 'danger');
+    }
+}
+
+async function deleteUser(userId) {
+    if (userId === currentUser.id) {
+        showAlert('Cannot delete your own account', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            await loadUsers();
+            await loadAdminStats();
+            showAlert('User deleted successfully', 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to delete user', 'danger');
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showAlert('Error deleting user', 'danger');
+    }
+}
+
+// Enhanced User Management Functions
+async function toggleAdminStatus(userId) {
+    if (userId === currentUser.id) {
+        showAlert('Cannot modify your own admin status', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to toggle admin status for this user?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle-admin`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            await loadUsers();
+            await loadAdminStats();
+            showAlert(result.message, 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to toggle admin status', 'danger');
+        }
+    } catch (error) {
+        console.error('Error toggling admin status:', error);
+        showAlert('Error toggling admin status', 'danger');
+    }
+}
+
+async function deactivateUser(userId) {
+    if (userId === currentUser.id) {
+        showAlert('Cannot deactivate your own account', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to deactivate this user?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/deactivate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            await loadUsers();
+            await loadAdminStats();
+            showAlert(result.message, 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to deactivate user', 'danger');
+        }
+    } catch (error) {
+        console.error('Error deactivating user:', error);
+        showAlert('Error deactivating user', 'danger');
+    }
+}
+
+async function reactivateUser(userId) {
+    if (!confirm('Are you sure you want to reactivate this user?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/reactivate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            await loadUsers();
+            await loadAdminStats();
+            showAlert(result.message, 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to reactivate user', 'danger');
+        }
+    } catch (error) {
+        console.error('Error reactivating user:', error);
+        showAlert('Error reactivating user', 'danger');
+    }
+}
+
+// Bulletin Filters Management
+async function loadBulletinFilters() {
+    try {
+        const response = await fetch('/api/admin/bulletin-filters', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayBulletinFilters(data.filters || []);
+        }
+    } catch (error) {
+        console.error('Error loading bulletin filters:', error);
+    }
+}
+
+function displayBulletinFilters(filters) {
+    const tbody = document.getElementById('filtersTableBody');
+    tbody.innerHTML = filters.map(filter => `
+        <tr>
+            <td>${filter.id}</td>
+            <td>${filter.user_name}</td>
+            <td>${filter.name}</td>
+            <td>
+                ${filter.keywords.length > 0 ? 
+                    `<span class="badge bg-info">${filter.keywords.slice(0, 3).join(', ')}${filter.keywords.length > 3 ? '...' : ''}</span>` : 
+                    '<span class="text-muted">None</span>'
+                }
+            </td>
+            <td>
+                ${filter.categories.length > 0 ? 
+                    `<span class="badge bg-secondary">${filter.categories.slice(0, 2).join(', ')}${filter.categories.length > 2 ? '...' : ''}</span>` : 
+                    '<span class="text-muted">All</span>'
+                }
+            </td>
+            <td><span class="badge bg-${filter.is_active ? 'success' : 'secondary'}">${filter.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${new Date(filter.created_at).toLocaleDateString()}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-info" onclick="viewFilterDetails(${filter.id})" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteBulletinFilter(${filter.id})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function deleteBulletinFilter(filterId) {
+    if (!confirm('Are you sure you want to delete this filter?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/bulletin-filters/${filterId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            await loadBulletinFilters();
+            showAlert('Filter deleted successfully', 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to delete filter', 'danger');
+        }
+    } catch (error) {
+        console.error('Error deleting filter:', error);
+        showAlert('Error deleting filter', 'danger');
+    }
+}
+
+async function viewFilterDetails(filterId) {
+    try {
+        const response = await fetch(`/api/admin/bulletin-filters/${filterId}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const filterData = await response.json();
+            displayFilterDetails(filterData);
+            new bootstrap.Modal(document.getElementById('filterDetailsModal')).show();
+        } else {
+            showAlert('Failed to load filter details', 'danger');
+        }
+    } catch (error) {
+        console.error('Error loading filter details:', error);
+        showAlert('Error loading filter details', 'danger');
+    }
+}
+
+function displayFilterDetails(filter) {
+    // Basic Information
+    document.getElementById('filterDetailId').textContent = filter.id;
+    document.getElementById('filterDetailName').textContent = filter.name;
+    document.getElementById('filterDetailUser').textContent = filter.user_name;
+    document.getElementById('filterDetailStatus').innerHTML = 
+        `<span class="badge bg-${filter.is_active ? 'success' : 'secondary'}">${filter.is_active ? 'Active' : 'Inactive'}</span>`;
+    document.getElementById('filterDetailCreated').textContent = new Date(filter.created_at).toLocaleString();
+    document.getElementById('filterDetailLastUsed').textContent = filter.last_used ? 
+        new Date(filter.last_used).toLocaleString() : 'Never';
+    
+    // Filter Criteria
+    const keywordsDiv = document.getElementById('filterDetailKeywords');
+    if (filter.keywords && filter.keywords.length > 0) {
+        keywordsDiv.innerHTML = filter.keywords.map(keyword => 
+            `<span class="badge bg-info me-1">${keyword}</span>`
+        ).join('');
+    } else {
+        keywordsDiv.innerHTML = '<span class="text-muted">No keywords specified</span>';
+    }
+    
+    const categoriesDiv = document.getElementById('filterDetailCategories');
+    if (filter.categories && filter.categories.length > 0) {
+        categoriesDiv.innerHTML = filter.categories.map(category => 
+            `<span class="badge bg-secondary me-1">${category}</span>`
+        ).join('');
+    } else {
+        categoriesDiv.innerHTML = '<span class="text-muted">All categories</span>';
+    }
+    
+    const yearGroupsDiv = document.getElementById('filterDetailYearGroups');
+    if (filter.year_groups && filter.year_groups.length > 0) {
+        yearGroupsDiv.innerHTML = filter.year_groups.map(year => 
+            `<span class="badge bg-primary me-1">Year ${year}</span>`
+        ).join('');
+    } else {
+        yearGroupsDiv.innerHTML = '<span class="text-muted">All year groups</span>';
+    }
+    
+    // Usage Statistics (mock data for now - can be enhanced later)
+    const usageCount = filter.usage_count || Math.floor(Math.random() * 50);
+    const matchCount = filter.match_count || Math.floor(Math.random() * 200);
+    const efficiency = matchCount > 0 ? Math.round((usageCount / matchCount) * 100) : 0;
+    
+    document.getElementById('filterUsageCount').textContent = usageCount;
+    document.getElementById('filterMatchCount').textContent = matchCount;
+    document.getElementById('filterEfficiency').textContent = `${efficiency}%`;
+    
+    // Store filter ID for delete function
+    document.getElementById('deleteFilterFromDetails').setAttribute('data-filter-id', filter.id);
+}
+
+async function deleteFilterFromDetails() {
+    const filterId = document.getElementById('deleteFilterFromDetails').getAttribute('data-filter-id');
+    if (!filterId) return;
+    
+    if (!confirm('Are you sure you want to delete this filter?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/bulletin-filters/${filterId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('filterDetailsModal')).hide();
+            await loadBulletinFilters();
+            showAlert('Filter deleted successfully', 'success');
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to delete filter', 'danger');
+        }
+    } catch (error) {
+        console.error('Error deleting filter:', error);
+        showAlert('Error deleting filter', 'danger');
+    }
+}
+
+// Bulk Email Management
+let filteredUsers = [];
+let selectedRecipients = [];
+
+async function loadFilteredUsers() {
+    try {
+        const keywords = document.getElementById('recipientKeywords').value
+            .split(',')
+            .map(k => k.trim())
+            .filter(k => k.length > 0);
+        
+        const adminOnly = document.getElementById('adminOnlyFilter').checked;
+        
+        const filterData = {
+            keywords: keywords,
+            admin_only: adminOnly
+        };
+        
+        const response = await fetch('/api/admin/users/filtered', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterData)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            filteredUsers = data.users;
+            displayFilteredUsers(filteredUsers);
+            updateRecipientCount();
+        } else {
+            showAlert('Failed to load filtered users', 'danger');
+        }
+    } catch (error) {
+        console.error('Error loading filtered users:', error);
+        showAlert('Error loading filtered users', 'danger');
+    }
+}
+
+function displayFilteredUsers(users) {
+    const container = document.getElementById('recipientsList');
+    
+    if (users.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No users found matching the criteria</p>';
+        return;
+    }
+    
+    container.innerHTML = users.map(user => `
+        <div class="form-check mb-2">
+            <input class="form-check-input recipient-checkbox" type="checkbox" 
+                   value="${user.id}" id="recipient-${user.id}" 
+                   onchange="updateSelectedRecipients()">
+            <label class="form-check-label w-100" for="recipient-${user.id}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${user.name}</strong>
+                        <small class="text-muted d-block">${user.email}</small>
+                    </div>
+                    <div>
+                        ${user.is_admin ? '<span class="badge bg-warning">Admin</span>' : ''}
+                    </div>
+                </div>
+            </label>
+        </div>
+    `).join('');
+}
+
+function selectAllRecipients() {
+    const checkboxes = document.querySelectorAll('.recipient-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateSelectedRecipients();
+}
+
+function clearRecipientSelection() {
+    const checkboxes = document.querySelectorAll('.recipient-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelectedRecipients();
+}
+
+function updateSelectedRecipients() {
+    const checkboxes = document.querySelectorAll('.recipient-checkbox:checked');
+    selectedRecipients = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    updateRecipientCount();
+    updateSelectedRecipientsPreview();
+    updateSendButtonState();
+}
+
+function updateRecipientCount() {
+    const count = selectedRecipients.length;
+    document.getElementById('recipientCount').textContent = count;
+}
+
+function updateSelectedRecipientsPreview() {
+    const count = selectedRecipients.length;
+    const preview = document.getElementById('selectedRecipientsPreview');
+    
+    if (count === 0) {
+        preview.textContent = 'No recipients selected';
+    } else {
+        const selectedUsers = filteredUsers.filter(user => selectedRecipients.includes(user.id));
+        if (count <= 3) {
+            preview.textContent = `Selected: ${selectedUsers.map(u => u.name).join(', ')}`;
+        } else {
+            preview.textContent = `Selected: ${selectedUsers.slice(0, 3).map(u => u.name).join(', ')} and ${count - 3} more`;
+        }
+    }
+}
+
+function updateSendButtonState() {
+    const sendBtn = document.getElementById('sendBulkEmailBtn');
+    const subject = document.getElementById('emailSubject').value.trim();
+    const content = document.getElementById('emailContent').value.trim();
+    
+    sendBtn.disabled = !(selectedRecipients.length > 0 && subject && content);
+}
+
+async function sendBulkEmail() {
+    if (!confirm(`Are you sure you want to send this email to ${selectedRecipients.length} recipients?`)) {
+        return;
+    }
+    
+    const sendBtn = document.getElementById('sendBulkEmailBtn');
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    sendBtn.disabled = true;
+    
+    try {
+        const emailData = {
+            subject: document.getElementById('emailSubject').value,
+            content: document.getElementById('emailContent').value,
+            recipient_ids: selectedRecipients
+        };
+        
+        const response = await fetch('/api/admin/send-bulk-email', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(emailData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showAlert(result.message, 'success');
+            
+            // Reset form
+            document.getElementById('bulkEmailForm').reset();
+            clearRecipientSelection();
+            updateSendButtonState();
+            
+            // Refresh email logs if on that tab
+            if (document.getElementById('emails-tab').classList.contains('active')) {
+                loadEmailLogs();
+            }
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Failed to send bulk email', 'danger');
+        }
+    } catch (error) {
+        console.error('Error sending bulk email:', error);
+        showAlert('Error sending bulk email', 'danger');
+    } finally {
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+        updateSendButtonState();
+    }
+}
+
+// Add event listeners for email form validation
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners after DOM is loaded
+    const emailSubject = document.getElementById('emailSubject');
+    const emailContent = document.getElementById('emailContent');
+    
+    if (emailSubject) {
+        emailSubject.addEventListener('input', updateSendButtonState);
+    }
+    if (emailContent) {
+        emailContent.addEventListener('input', updateSendButtonState);
+    }
+});
+
+// Audit Logs Management
+async function loadAuditLogs() {
+    try {
+        const actionFilter = document.getElementById('auditActionFilter')?.value || '';
+        const url = actionFilter ? 
+            `/api/admin/audit-logs?action_type=${actionFilter}` : 
+            '/api/admin/audit-logs';
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayAuditLogs(data.logs || []);
+        }
+    } catch (error) {
+        console.error('Error loading audit logs:', error);
+    }
+}
+
+function displayAuditLogs(logs) {
+    const tbody = document.getElementById('auditTableBody');
+    tbody.innerHTML = logs.map(log => `
+        <tr>
+            <td>${new Date(log.timestamp).toLocaleString()}</td>
+            <td>${log.admin_user_name}</td>
+            <td><span class="badge bg-primary">${log.action_type.replace(/_/g, ' ').toUpperCase()}</span></td>
+            <td>${log.target_user_name || 'N/A'}</td>
+            <td>
+                ${Object.keys(log.action_details).length > 0 ? 
+                    `<button class="btn btn-sm btn-outline-info" onclick="showAuditDetails('${JSON.stringify(log.action_details).replace(/'/g, '\\\'')}')" title="View Details">
+                        <i class="fas fa-info-circle"></i>
+                    </button>` : 
+                    '<span class="text-muted">No details</span>'
+                }
+            </td>
+            <td><small class="text-muted">${log.ip_address || 'Unknown'}</small></td>
+        </tr>
+    `).join('');
+}
+
+function showAuditDetails(detailsJson) {
+    try {
+        const details = JSON.parse(detailsJson);
+        let detailsHtml = '<ul class="list-unstyled mb-0">';
+        
+        for (const [key, value] of Object.entries(details)) {
+            detailsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</li>`;
+        }
+        detailsHtml += '</ul>';
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-info alert-dismissible fade show position-fixed top-50 start-50 translate-middle';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.maxWidth = '500px';
+        alertDiv.innerHTML = `
+            <h6>Audit Log Details</h6>
+            ${detailsHtml}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 10000);
+    } catch (e) {
+        showAlert('Error displaying audit details', 'danger');
+    }
+}
+
+// Bulletin Management Functions
+async function refreshBulletins() {
+    try {
+        const response = await fetch('/api/admin/refresh-bulletins', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            await loadBulletins();
+            await loadAdminStats();
+            showAlert('Bulletins refreshed successfully', 'success');
+        } else {
+            throw new Error('Failed to refresh bulletins');
+        }
+    } catch (error) {
+        console.error('Error refreshing bulletins:', error);
+        showAlert('Error refreshing bulletins', 'danger');
+    }
+}
+
+// Placeholder functions for other actions
+function sendTestEmail() {
+    showAlert('Test email feature coming soon', 'info');
+}
+
+function exportData() {
+    showAlert('Export feature coming soon', 'info');
+}
+
+function viewLogs() {
+    showAlert('Logs feature coming soon', 'info');
+}
+
+function editBulletin(id) {
+    showAlert('Edit bulletin feature coming soon', 'info');
+}
+
+function emailBulletin(id) {
+    showAlert('Email bulletin feature coming soon', 'info');
+}
+
+function deleteBulletin(id) {
+    showAlert('Delete bulletin feature coming soon', 'info');
+}
+
+function viewEmailContent(id) {
+    showAlert('View email content feature coming soon', 'info');
+}
+
+// Utility Functions
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}

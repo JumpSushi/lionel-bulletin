@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error }} - KGV Bulletin Service{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <div class="card shadow-sm">
+                <div class="card-body py-5">
+                    <h1 class="display-4 text-danger">{{ error }}</h1>
+                    <p class="lead">{{ message }}</p>
+                    <hr>
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                        <a href="/dashboard" class="btn btn-primary">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Redirect to dashboard after 5 seconds
+    setTimeout(() => {
+        window.location.href = '/dashboard';
+    }, 5000);
+</script>
+{% endblock %}

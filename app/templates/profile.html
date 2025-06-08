@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - KGV Bulletin Service{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user"></i> Profile Settings
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailSubscription">
+                                <label class="form-check-label" for="emailSubscription">
+                                    <i class="fas fa-envelope"></i> Subscribe to Year 9 bulletin notifications
+                                </label>
+                                <div class="form-text">
+                                    Receive automatic email notifications when new Year 9 relevant bulletins are available.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="preferences" class="form-label">Email Preferences</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prefSports">
+                                        <label class="form-check-label" for="prefSports">
+                                            Sports & Athletics
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prefAcademic">
+                                        <label class="form-check-label" for="prefAcademic">
+                                            Academic Activities
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prefEvents">
+                                        <label class="form-check-label" for="prefEvents">
+                                            School Events
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prefGeneral">
+                                        <label class="form-check-label" for="prefGeneral">
+                                            General Announcements
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Change Password Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lock"></i> Change Password
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="passwordForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="newPassword" required>
+                                    <div class="form-text">
+                                        Must be at least 8 characters long
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Account Stats Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Account Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <h4 class="text-primary" id="statEmailsReceived">0</h4>
+                                <small class="text-muted">Emails Received</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <h4 class="text-success" id="statBulletinsViewed">0</h4>
+                                <small class="text-muted">Bulletins Viewed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <h4 class="text-info" id="statLastLogin">Never</h4>
+                                <small class="text-muted">Last Login</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <h4 class="text-warning" id="statMemberSince">N/A</h4>
+                                <small class="text-muted">Member Since</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Danger Zone -->
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Delete Account</h6>
+                            <p class="text-muted mb-0">
+                                Permanently delete your account and all associated data. This action cannot be undone.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteAccount()">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Account Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> This action cannot be undone!
+                </div>
+                <p>Are you absolutely sure you want to delete your account? This will:</p>
+                <ul>
+                    <li>Permanently delete your profile and preferences</li>
+                    <li>Remove you from all email subscriptions</li>
+                    <li>Delete all your account data</li>
+                </ul>
+                <div class="mb-3">
+                    <label for="deleteConfirmPassword" class="form-label">
+                        Enter your password to confirm:
+                    </label>
+                    <input type="password" class="form-control" id="deleteConfirmPassword" placeholder="Your password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deleteAccount()">
+                    <i class="fas fa-trash"></i> Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-item {
+    padding: 1rem 0;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger:hover {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication before loading data
+    const hasAuth = requireAuth();
+    if (!hasAuth) {
+        console.log("Authentication check failed, not loading profile data");
+        return;
+    }
+    
+    console.log("Authentication confirmed, loading profile data");
+    loadProfileData();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    document.getElementById('profileForm').addEventListener('submit', updateProfile);
+    document.getElementById('passwordForm').addEventListener('submit', changePassword);
+}
+
+async function loadProfileData() {
+    try {
+        console.log("Fetching profile data...");
+        const profile = await apiCall('/profile');
+        
+        if (!profile || !profile.user) {
+            throw new Error('Invalid profile data received');
+        }
+        
+        console.log("Profile data received successfully");
+        populateProfileForm(profile.user);
+        updateStats(profile.stats || {});
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showAlert('Error loading profile data: ' + (error.message || 'Unknown error'), 'danger');
+        
+        // If we got an authentication error, redirect to login
+        if (error.status === 401 || error.status === 403) {
+            console.log("Authentication error while loading profile, redirecting to login");
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        }
+    }
+}
+
+function populateProfileForm(profile) {
+    document.getElementById('username').value = profile.name || '';
+    document.getElementById('email').value = profile.email || '';
+    document.getElementById('emailSubscription').checked = profile.is_active || false;
+    
+    // Set preferences
+    const preferences = profile.preferences || {};
+    document.getElementById('prefSports').checked = preferences.sports || false;
+    document.getElementById('prefAcademic').checked = preferences.academic || false;
+    document.getElementById('prefEvents').checked = preferences.events || false;
+    document.getElementById('prefGeneral').checked = preferences.general || false;
+}
+
+function updateStats(stats) {
+    document.getElementById('statEmailsReceived').textContent = stats.emails_received || 0;
+    document.getElementById('statBulletinsViewed').textContent = stats.bulletins_viewed || 0;
+    document.getElementById('statLastLogin').textContent = stats.last_login ? 
+        new Date(stats.last_login).toLocaleDateString() : 'Never';
+    document.getElementById('statMemberSince').textContent = stats.member_since ? 
+        new Date(stats.member_since).toLocaleDateString() : 'N/A';
+}
+
+async function updateProfile(event) {
+    event.preventDefault();
+    
+    const profileData = {
+        name: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        is_active: document.getElementById('emailSubscription').checked,
+        preferences: {
+            sports: document.getElementById('prefSports').checked,
+            academic: document.getElementById('prefAcademic').checked,
+            events: document.getElementById('prefEvents').checked,
+            general: document.getElementById('prefGeneral').checked
+        }
+    };
+    
+    try {
+        const response = await apiCall('/profile', 'PUT', profileData);
+        showAlert('Profile updated successfully!', 'success');
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showAlert(error.message || 'Error updating profile', 'danger');
+    }
+}
+
+async function changePassword(event) {
+    event.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validation
+    if (newPassword !== confirmPassword) {
+        showAlert('New passwords do not match', 'danger');
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        showAlert('New password must be at least 8 characters long', 'danger');
+        return;
+    }
+    
+    const passwordData = {
+        current_password: currentPassword,
+        new_password: newPassword
+    };
+    
+    try {
+        const response = await apiCall('/profile/password', 'PUT', passwordData);
+        document.getElementById('passwordForm').reset();
+        showAlert('Password changed successfully!', 'success');
+    } catch (error) {
+        console.error('Error changing password:', error);
+        showAlert(error.message || 'Error changing password', 'danger');
+    }
+}
+
+function confirmDeleteAccount() {
+    new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+}
+
+async function deleteAccount() {
+    const password = document.getElementById('deleteConfirmPassword').value;
+    
+    if (!password) {
+        showAlert('Please enter your password to confirm', 'danger');
+        return;
+    }
+    
+    try {
+        const response = await apiCall('/profile', 'DELETE', { password: password });
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        showAlert('Account deleted successfully', 'success');
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        showAlert(error.message || 'Error deleting account', 'danger');
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KGV Bulletin Email Service{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Red Hat Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700&family=Red+Hat+Text:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #1f2937;
+            --secondary-color: #374151;
+            --accent-color: #6b7280;
+            --light-color: #f9fafb;
+            --dark-color: #111827;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        body {
+            background-color: var(--light-color);
+            min-height: 100vh;
+            font-family: 'Red Hat Text', sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6, .navbar-brand {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 600;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .form-control {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Red Hat Text', sans-serif;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(31, 41, 55, 0.1);
+        }
+
+        .alert {
+            border-radius: 6px;
+            border: 1px solid transparent;
+            font-family: 'Red Hat Text', sans-serif;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .hero-section {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Red Hat Display', sans-serif;
+            margin-bottom: 5px;
+        }
+
+        .bulletin-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 3px solid var(--primary-color);
+            transition: border-left-color 0.2s ease;
+        }
+
+        .bulletin-item:hover {
+            border-left-color: var(--secondary-color);
+        }
+
+        .headline {
+            background: var(--light-color);
+            border-left: 3px solid var(--accent-color);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .headline h6 {
+            color: var(--text-primary);
+            margin: 0;
+            font-weight: 600;
+            font-family: 'Red Hat Display', sans-serif;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border-color);
+            min-height: calc(100vh - 76px);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 6px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-family: 'Red Hat Text', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .nav-pills .nav-link:hover {
+            background-color: var(--light-color);
+            color: var(--primary-color);
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 32px 0;
+            margin-top: 40px;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-family: 'Red Hat Text', sans-serif;
+            font-weight: 500;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+        }
+
+        /* Typography improvements for Red Hat fonts */
+        h1, h2, h3, h4, h5, h6 {
+            letter-spacing: -0.025em;
+        }
+
+        .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+
+        .lead {
+            font-family: 'Red Hat Text', sans-serif;
+            font-weight: 400;
+            line-height: 1.7;
+        }
+
+        .btn {
+            font-family: 'Red Hat Text', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.025em;
+        }
+
+        .card-title {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 600;
+        }
+
+        .form-label {
+            font-family: 'Red Hat Text', sans-serif;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .small, .form-text {
+            font-family: 'Red Hat Text', sans-serif;
+            font-weight: 400;
+        }
+
+        /* Improved spacing */
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 1140px;
+        }
+
+        /* Better hover states */
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .card {
+            transition: all 0.2s ease;
+        }
+
+        /* Focus states */
+        .btn:focus {
+            box-shadow: 0 0 0 0.2rem rgba(31, 41, 55, 0.15);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-envelope-open-text me-2"></i>
+                KGV Bulletin Service
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/" id="nav-home">Home</a>
+                    </li>
+                    <li class="nav-item" id="nav-dashboard-item" style="display: none;">
+                        <a class="nav-link" href="/dashboard" id="nav-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item" id="nav-admin-item" style="display: none;">
+                        <a class="nav-link" href="/admin" id="nav-admin">Admin</a>
+                    </li>
+                    <li class="nav-item" id="nav-profile-item" style="display: none;">
+                        <a class="nav-link" href="/profile" id="nav-profile">Profile</a>
+                    </li>
+                    <li class="nav-item" id="nav-login-item">
+                        <a class="nav-link" href="/login" id="nav-login">Login</a>
+                    </li>
+                    <li class="nav-item" id="nav-register-item">
+                        <a class="nav-link" href="/register" id="nav-register">Register</a>
+                    </li>
+                    <li class="nav-item" id="nav-logout-item" style="display: none;">
+                        <a class="nav-link" href="#" id="nav-logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>KGV Bulletin Email Service</h5>
+                    <p class="text-muted">Stay updated with the latest school announcements and important information.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted">&copy; 2025 KGV School. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Common JavaScript -->
+    <script>
+        // Global variables
+        let currentUser = null;
+        let authToken = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            updateNavigation();
+            
+            // Add path-specific handling
+            const currentPath = window.location.pathname;
+            if (currentPath === '/login' || currentPath === '/register') {
+                // If we're on login/register page and already authenticated, redirect to dashboard
+                if (currentUser) {
+                    if (currentUser.is_admin) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }
+            }
+        });
+
+        // Check authentication status
+        function checkAuth() {
+            // Always get fresh values from localStorage
+            const storedToken = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            
+            console.log("Checking authentication status...");
+            
+            if (storedToken && userData) {
+                try {
+                    // Update the global variable
+                    authToken = storedToken;
+                    currentUser = JSON.parse(userData);
+                    
+                    console.log("Auth check: User authenticated as:", currentUser.name);
+                    console.log("Token available:", !!authToken);
+                    
+                    // Check if token is near expiry and try to refresh it
+                    tryRefreshToken();
+                    
+                    // Don't verify token on every page load - it creates too many API calls
+                    // Only verify when we're on sensitive pages
+                    const path = window.location.pathname;
+                    if (path === '/dashboard' || path === '/profile' || path === '/admin') {
+                        console.log("On protected page, verifying token validity");
+                        setTimeout(() => verifyToken(), 500); // Slight delay to avoid race conditions
+                    }
+                } catch (e) {
+                    console.error("Error parsing user data:", e);
+                    logout();
+                }
+            } else {
+                console.log("Auth check: No valid auth data found in localStorage");
+                console.log("Token found:", !!storedToken);
+                console.log("User data found:", !!userData);
+                
+                currentUser = null;
+                authToken = null;
+            }
+        }
+        
+        // Try to refresh the auth token if it's older than 3 hours or force refresh is true
+        async function tryRefreshToken(forceRefresh = false) {
+            try {
+                const refreshToken = localStorage.getItem('refreshToken');
+                
+                if (!refreshToken) {
+                    console.log("No refresh token available");
+                    return false;
+                }
+                
+                // Get token expiration time from localStorage or default to 0
+                const tokenTimestamp = parseInt(localStorage.getItem('tokenTimestamp') || '0');
+                const currentTime = new Date().getTime();
+                const threeHoursMs = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+                
+                // If token is older than 3 hours or force refresh is true, try to refresh it
+                if (forceRefresh || currentTime - tokenTimestamp > threeHoursMs) {
+                    console.log("Token is older than 3 hours or force refresh requested, attempting refresh");
+                    
+                    const response = await fetch('/api/auth/refresh', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${refreshToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Update localStorage and global variables
+                        localStorage.setItem('authToken', data.access_token);
+                        localStorage.setItem('tokenTimestamp', new Date().getTime().toString());
+                        authToken = data.access_token;
+                        
+                        console.log("Token refreshed successfully");
+                        return true;
+                    } else {
+                        console.log("Failed to refresh token, status:", response.status);
+                        return false;
+                    }
+                } else {
+                    console.log("Token is still fresh, no refresh needed");
+                    return true; // Token is still fresh
+                }
+            } catch (e) {
+                console.error("Error refreshing token:", e);
+                return false;
+            }
+        }
+        
+        // Verify token is valid with a simple API call
+        async function verifyToken() {
+            try {
+                // Always get the latest token from localStorage
+                const storedToken = localStorage.getItem('authToken');
+                
+                // Only do this if we have a token
+                if (!storedToken) {
+                    console.log("No token to verify in localStorage");
+                    return;
+                }
+                
+                // Don't make this call on login page to avoid loops
+                if (window.location.pathname === '/login') {
+                    console.log("On login page, skipping token verification");
+                    return;
+                }
+                
+                console.log("Verifying token validity...");
+                const response = await fetch('/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${storedToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    console.log("Token is valid");
+                    // Make sure our global variable is updated with the valid token
+                    authToken = storedToken;
+                    return;
+                }
+                
+                // If we get an auth error, show a message but don't immediately log out
+                if (response.status === 401 || response.status === 403) {
+                    console.log("Token validation failed (401/403)");
+                    console.log("Attempting to refresh token before logging out...");
+                    
+                    const refreshed = await tryRefreshToken(true); // Force refresh
+                    
+                    if (!refreshed) {
+                        // Only logout if refresh failed
+                        showAlert("Your session has expired. Please log in again.", "warning");
+                        setTimeout(() => logout(), 2000);
+                    } else {
+                        showAlert("Your session has been refreshed.", "success");
+                    }
+                }
+            } catch (e) {
+                console.error("Token verification error:", e);
+                // Don't automatically logout on network errors
+                showAlert("Connection issue. Please check your internet connection.", "warning");
+            }
+        }
+
+        // Update navigation based on auth status
+        function updateNavigation() {
+            const loginItem = document.getElementById('nav-login-item');
+            const registerItem = document.getElementById('nav-register-item');
+            const dashboardItem = document.getElementById('nav-dashboard-item');
+            const profileItem = document.getElementById('nav-profile-item');
+            const adminItem = document.getElementById('nav-admin-item');
+            const logoutItem = document.getElementById('nav-logout-item');
+
+            if (currentUser) {
+                loginItem.style.display = 'none';
+                registerItem.style.display = 'none';
+                dashboardItem.style.display = 'block';
+                profileItem.style.display = 'block';
+                logoutItem.style.display = 'block';
+                
+                if (currentUser.is_admin) {
+                    adminItem.style.display = 'block';
+                }
+            } else {
+                loginItem.style.display = 'block';
+                registerItem.style.display = 'block';
+                dashboardItem.style.display = 'none';
+                profileItem.style.display = 'none';
+                adminItem.style.display = 'none';
+                logoutItem.style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('tokenTimestamp');
+            localStorage.removeItem('userData');
+            currentUser = null;
+            authToken = null;
+            updateNavigation();
+            window.location.href = '/';
+        }
+
+        // Add event listener for logout
+        document.getElementById('nav-logout').addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+
+        // API helper function
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            // Re-check auth token from localStorage every time
+            // This ensures we always use the latest token
+            const currentToken = localStorage.getItem('authToken');
+            
+            const config = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            if (currentToken) {
+                config.headers['Authorization'] = `Bearer ${currentToken}`;
+                console.log(`Using token for API call to ${endpoint}`);
+            } else {
+                console.warn(`No token available for API call to ${endpoint}`);
+            }
+
+            if (data) {
+                config.body = JSON.stringify(data);
+            }
+
+            try {
+                console.log(`API call: ${method} /api${endpoint}`);
+                const response = await fetch(`/api${endpoint}`, config);
+                let result;
+                
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    console.error("Error parsing JSON response:", e);
+                    throw new Error('Invalid response format');
+                }
+
+                if (!response.ok) {
+                    const error = new Error(result.error || result.message || 'Request failed');
+                    error.status = response.status;
+                    error.data = result;
+                    
+                    // Handle authentication errors
+                    if (response.status === 401 || response.status === 403) {
+                        console.log("Authentication error from API");
+                        
+                        // Don't immediately clear auth state - let the caller handle this
+                        // This prevents random API errors from immediately logging the user out
+                        error.isAuthError = true;
+                    }
+                    
+                    throw error;
+                }
+
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        // Show alert function
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            const container = document.querySelector('.container');
+            if (container) {
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        // Loading state helper
+        function setLoading(element, loading = true) {
+            if (loading) {
+                element.disabled = true;
+                element.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+            } else {
+                element.disabled = false;
+            }
+        }
+
+        // Format date helper
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        // Redirect if not authenticated
+        function requireAuth() {
+            console.log("Running requireAuth check");
+            
+            // Always get fresh values from localStorage 
+            const hasToken = localStorage.getItem('authToken') !== null;
+            const hasUserData = localStorage.getItem('userData') !== null;
+            
+            console.log("Token found:", hasToken);
+            console.log("User data found:", hasUserData);
+            
+            if (!hasToken || !hasUserData) {
+                console.log("Missing auth token or user data");
+                // Clear any partial auth state to avoid confusion
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('tokenTimestamp');
+                localStorage.removeItem('userData');
+                currentUser = null;
+                authToken = null;
+                
+                // Only redirect if we're not already on the login page
+                if (window.location.pathname !== '/login') {
+                    console.log("Auth required but not authenticated, redirecting to login");
+                    window.location.href = '/login';
+                }
+                return false;
+            }
+            
+            // If we have token and userData but currentUser is null, try to set it
+            if (!currentUser && hasUserData) {
+                try {
+                    const userData = localStorage.getItem('userData');
+                    currentUser = JSON.parse(userData);
+                    // Also update the authToken global variable
+                    authToken = localStorage.getItem('authToken');
+                    console.log("Set currentUser from localStorage:", currentUser.name);
+                } catch (e) {
+                    console.error("Failed to parse userData:", e);
+                    // Invalid data - clear and redirect
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('tokenTimestamp');
+                    localStorage.removeItem('userData');
+                    
+                    if (window.location.pathname !== '/login') {
+                        console.log("Invalid user data, redirecting to login");
+                        window.location.href = '/login';
+                    }
+                    return false;
+                }
+            }
+            
+            console.log("Authentication check passed for user:", currentUser?.name);
+            return true;
+        }
+
+        // Redirect if not admin
+        function requireAdmin() {
+            if (!currentUser || !currentUser.is_admin) {
+                window.location.href = '/dashboard';
+                return false;
+            }
+            return true;
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
