@@ -1,3 +1,3 @@
-[Hello there](https://www.bulletin.kevinsiyuan.com)
+[Hello there](https://bulletin.kevinsiyuan.com)
 
 
