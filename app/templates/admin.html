@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - KGV Bulletin Service{% endblock %}
+{% block title %}Admin Dashboard - Student Bulletin Service{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -175,7 +175,7 @@
                                             <th>ID</th>
                                             <th>Title</th>
                                             <th>Category</th>
-                                            <th>Year 9</th>
+                                            <th>Targeted</th>
                                             <th>Date</th>
                                             <th>Actions</th>
                                         </tr>
@@ -561,7 +561,7 @@
                 <div class="card shadow-sm">
                     <div class="card-body py-5">
                         <h1 class="display-4 text-danger">403 Forbidden</h1>
-                        <p class="lead">You don't have permission to access the admin dashboard.</p>
+                        <p class="lead">You don't have permission to access this resource.</p>
                         <hr>
                         <div class="mt-4">
                             <a href="/" class="btn btn-outline-secondary">
@@ -1046,6 +1046,22 @@ async function loadBulletinFilters() {
 
 function displayBulletinFilters(filters) {
     const tbody = document.getElementById('filtersTableBody');
+    
+    if (!filters || filters.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-filter fa-2x mb-2"></i>
+                        <p class="mb-0">No bulletin filters found</p>
+                        <small>Users haven't created any custom filters yet</small>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
     tbody.innerHTML = filters.map(filter => `
         <tr>
             <td>${filter.id}</td>

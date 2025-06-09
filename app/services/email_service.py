@@ -7,11 +7,18 @@ import os
 
 class EmailService:
     def __init__(self):
-        self.sender_email = os.getenv('MAIL_DEFAULT_SENDER', os.getenv('MAIL_USERNAME'))
+        sender_name = os.getenv('MAIL_DEFAULT_SENDER')
+        sender_email = os.getenv('MAIL_USERNAME')
+        
+        # Format sender as "Display Name <email@address.com>"
+        if sender_name and sender_email:
+            self.sender_email = f"{sender_name} <{sender_email}>"
+        else:
+            self.sender_email = sender_email or sender_name
     
     def generate_bulletin_email(self, user, items):
         """Generate email content for bulletin items"""
-        subject = f"KGV Bulletin - Year {user.year_group} Highlights"
+        subject = f"KGV Bulletin - Year {user.year_group} Disapointments and Announcements"
         
         # Generate HTML content
         html_content = f"""
@@ -145,7 +152,7 @@ class EmailService:
         </head>
         <body>
             <div class="header">
-                <h1>KGV Bulletin Highlights</h1>
+                <h1>Student Bulletin</h1>
                 <p>Year {user.year_group} • {datetime.now().strftime('%B %d, %Y')}</p>
             </div>
         """
@@ -203,12 +210,8 @@ class EmailService:
         
         html_content += f"""
             <div class="footer">
-                <p><strong>KGV School Bulletin Email Service</strong></p>
-                <p>You're receiving this because you subscribed to {user.email_frequency} bulletin updates.</p>
-                <p>
-                    <a href="#" class="unsubscribe">Update email preferences</a> |
-                    <a href="#" class="unsubscribe">Unsubscribe</a>
-                </p>
+                <p><strong>Student Bulletin Email Service</strong></p>
+                <p>Got any questions? Email huais2@kgv.hk, or reply to this email!</p>
             </div>
         </body>
         </html>
@@ -377,10 +380,9 @@ class EmailService:
             'total_recipients': len(users)
         }
     
-    def send_verification_email(self, user, token):
-        """Send an email verification link to the user"""
-        verify_url = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/verify-email/{token}"
-        subject = "Verify your email address for KGV Bulletin Service"
+    def send_verification_email(self, user, code):
+        """Send an email verification code to the user"""
+        subject = "Verify your email address for Student Bulletin Service"
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -391,19 +393,29 @@ class EmailService:
             <style>
                 body {{ font-family: 'Red Hat Text', Arial, sans-serif; background: #f9fafb; color: #111827; padding: 30px; }}
                 .container {{ background: #fff; border-radius: 8px; padding: 30px; max-width: 600px; margin: 0 auto; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }}
-                .btn {{ display: inline-block; background: #1f2937; color: #fff; padding: 12px 28px; border-radius: 5px; text-decoration: none; font-weight: 600; margin-top: 20px; }}
+                .code-box {{ background: #f3f4f6; border: 2px dashed #d1d5db; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }}
+                .verification-code {{ font-size: 32px; font-weight: bold; color: #1f2937; letter-spacing: 8px; font-family: monospace; }}
                 .footer {{ margin-top: 30px; color: #6b7280; font-size: 13px; text-align: center; }}
+                .important {{ color: #dc2626; font-weight: 600; }}
             </style>
         </head>
         <body>
             <div class='container'>
                 <h2>Welcome to KGV Bulletin Service!</h2>
                 <p>Hi {user.name},</p>
-                <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
-                <a href='{verify_url}' class='btn'>Verify Email</a>
-                <p>If the button doesn't work, copy and paste this link into your browser:</p>
-                <p><a href='{verify_url}'>{verify_url}</a></p>
-                <div class='footer'>If you did not create an account, you can ignore this email.</div>
+                <p>Thank you for registering. Please verify your email address by entering the verification code below:</p>
+                
+                <div class='code-box'>
+                    <div class='verification-code'>{code}</div>
+                    <p style='margin-top: 10px; color: #6b7280; font-size: 14px;'>Enter this code to verify your email</p>
+                </div>
+                
+                <p class='important'>This code will expire in 15 minutes.</p>
+                <p>If you didn't create an account, you can safely ignore this email.</p>
+                
+                <div class='footer'>
+                    This code is case-sensitive and should be entered exactly as shown above.
+                </div>
             </div>
         </body>
         </html>

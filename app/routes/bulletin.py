@@ -56,8 +56,15 @@ def get_bulletins_for_user():
                 BulletinItem.year_groups.is_(None)
             )
         ).filter(
-            BulletinItem.is_feedback == False,
-            BulletinItem.is_donation == False
+            # Show all teacher posts, only filter out student feedback/donation requests
+            db.or_(
+                BulletinItem.is_from_student == False,  # Show all teacher posts
+                db.and_(
+                    BulletinItem.is_from_student == True,  # For student posts
+                    BulletinItem.is_feedback == False,     # Filter out feedback
+                    BulletinItem.is_donation == False      # Filter out donations
+                )
+            )
         ).order_by(BulletinItem.created_at.desc())
         
         # Paginate

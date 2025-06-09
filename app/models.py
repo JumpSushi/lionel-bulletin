@@ -4,7 +4,10 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 import json
 
+
 class User(db.Model):
+    __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
@@ -13,6 +16,7 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_email_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(255), nullable=True)
+    email_verification_code = db.Column(db.String(6), nullable=True)  # 6-digit verification code
     email_verification_sent_at = db.Column(db.DateTime, nullable=True)
     email_frequency = db.Column(db.String(20), default='daily')  # daily, weekly, disabled
     year_group = db.Column(db.String(10), default='9')  # Year group preference
@@ -23,6 +27,8 @@ class User(db.Model):
     
     # Relationships
     subscriptions = db.relationship('EmailSubscription', backref='user', lazy=True, cascade='all, delete-orphan')
+    bulletin_filters = db.relationship('BulletinFilter', backref='user', lazy=True, cascade='all, delete-orphan')
+    email_logs = db.relationship('EmailLog', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -55,6 +61,14 @@ class User(db.Model):
         self.email_verification_sent_at = datetime.utcnow()
         return self.email_verification_token
     
+    def generate_verification_code(self):
+        """Generate a 6-digit verification code"""
+        import random
+        code = str(random.randint(100000, 999999))
+        self.email_verification_code = code
+        self.email_verification_sent_at = datetime.utcnow()
+        return code
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -69,8 +83,10 @@ class User(db.Model):
         }
 
 class EmailSubscription(db.Model):
+    __tablename__ = 'email_subscriptions'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     frequency = db.Column(db.String(20), nullable=False)  # daily, weekly
     time_preference = db.Column(db.String(10), default='08:00')  # HH:MM format
     is_active = db.Column(db.Boolean, default=True)
@@ -86,7 +102,10 @@ class EmailSubscription(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+
 class BulletinItem(db.Model):
+    __tablename__ = 'bulletin_items'
+    
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     content = db.Column(db.Text, nullable=False)
@@ -96,8 +115,8 @@ class BulletinItem(db.Model):
     is_feedback = db.Column(db.Boolean, default=False)
     is_donation = db.Column(db.Boolean, default=False)
     is_from_student = db.Column(db.Boolean, default=False)
-    is_year9 = db.Column(db.Boolean, default=False)  # Add Year 9 specific flag
-    category = db.Column(db.String(50), default='general')  # Add category field
+    has_specific_targeting = db.Column(db.Boolean, default=False)  # Renamed from is_year9 for clarity
+    category = db.Column(db.String(50), default='general')  # Category field
     date = db.Column(db.String(20))  # Date string from bulletin
     year_groups = db.Column(db.String(50))  # Comma-separated year groups
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -126,15 +145,22 @@ class BulletinItem(db.Model):
             'is_feedback': self.is_feedback,
             'is_donation': self.is_donation,
             'is_from_student': self.is_from_student,
+            'is_year9': self.has_specific_targeting,  # Keep for API compatibility
+            'has_specific_targeting': self.has_specific_targeting,
+            'category': self.category,
+            'date': self.date,
             'year_groups': self.year_groups,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'scraped_at': self.scraped_at.isoformat() if self.scraped_at else None
         }
 
+
 class BulletinFilter(db.Model):
     """User-defined filters for bulletins"""
+    __tablename__ = 'bulletin_filters'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     
@@ -149,9 +175,6 @@ class BulletinFilter(db.Model):
     # Metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationship
-    user = db.relationship('User', backref='bulletin_filters')
     
     def set_keywords(self, keywords_list):
         self.keywords = json.dumps(keywords_list) if keywords_list else None
@@ -187,11 +210,14 @@ class BulletinFilter(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
+
 class AdminAction(db.Model):
     """Log admin actions for audit trail"""
+    __tablename__ = 'admin_actions'
+    
     id = db.Column(db.Integer, primary_key=True)
-    admin_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    target_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    target_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     action_type = db.Column(db.String(50), nullable=False)  # create_user, delete_user, update_user, etc.
     action_details = db.Column(db.Text)  # JSON details of the action
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -220,18 +246,18 @@ class AdminAction(db.Model):
             'ip_address': self.ip_address
         }
 
+
 class EmailLog(db.Model):
+    __tablename__ = 'email_logs'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     subject = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, sent, failed
     error_message = db.Column(db.Text)
     sent_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship
-    user = db.relationship('User', backref='email_logs')
     
     def to_dict(self):
         return {

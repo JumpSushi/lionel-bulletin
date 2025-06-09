@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from app import db
-from app.models import User, EmailSubscription, EmailLog
+from app.models import User, EmailSubscription, EmailLog, BulletinFilter
 from datetime import datetime, timedelta
 import re
 
@@ -51,8 +51,8 @@ def register():
         )
         user.set_password(password)
         
-        # Generate verification token
-        verification_token = user.generate_verification_token()
+        # Generate verification code
+        verification_code = user.generate_verification_code()
         
         db.session.add(user)
         db.session.commit()
@@ -61,14 +61,15 @@ def register():
         try:
             from app.services.email_service import EmailService
             email_service = EmailService()
-            email_service.send_verification_email(user, verification_token)
+            email_service.send_verification_email(user, verification_code)
         except Exception as e:
             print(f"Failed to send verification email: {e}")
         
         return jsonify({
-            'message': 'User registered successfully. Please check your email to verify your account.',
+            'message': 'User registered successfully. Please check your email for a 6-digit verification code.',
             'user': user.to_dict(),
-            'email_verification_required': True
+            'email_verification_required': True,
+            'user_id': user.id  # Include user_id for verification process
         }), 201
         
     except Exception as e:
@@ -124,7 +125,8 @@ def login():
             'message': 'Login successful',
             'user': user.to_dict(),
             'access_token': access_token,
-            'refresh_token': refresh_token
+            'refresh_token': refresh_token,
+            'preferences_setup_required': needs_preferences
         }), 200
         
     except Exception as e:
@@ -299,6 +301,7 @@ def delete_account():
         # Delete related records
         EmailSubscription.query.filter_by(user_id=user_id).delete()
         EmailLog.query.filter_by(user_id=user_id).delete()
+        BulletinFilter.query.filter_by(user_id=user_id).delete()
         
         # Delete user
         db.session.delete(user)
@@ -310,20 +313,49 @@ def delete_account():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/verify-email/<token>', methods=['GET'])
-def verify_email(token):
-    from app.models import User
+@auth_bp.route('/verify-email', methods=['POST'])
+def verify_email():
+    """Verify email using 6-digit code"""
     try:
-        user = User.query.filter_by(email_verification_token=token).first()
+        data = request.get_json()
+        
+        if not data.get('user_id') or not data.get('code'):
+            return jsonify({'error': 'User ID and verification code are required'}), 400
+        
+        user_id = data['user_id']
+        code = data['code'].strip()
+        
+        # Find user
+        user = User.query.get(user_id)
         if not user:
-            return jsonify({'error': 'Invalid or expired verification token.'}), 400
+            return jsonify({'error': 'User not found'}), 404
+            
         if user.is_email_verified:
-            return jsonify({'message': 'Email already verified.'}), 200
+            return jsonify({'message': 'Email already verified'}), 200
+        
+        # Check if code matches
+        if not user.email_verification_code or user.email_verification_code != code:
+            return jsonify({'error': 'Invalid verification code'}), 400
+        
+        # Check if code has expired (15 minutes)
+        if user.email_verification_sent_at:
+            time_since_sent = datetime.utcnow() - user.email_verification_sent_at
+            if time_since_sent.total_seconds() > 900:  # 15 minutes
+                return jsonify({'error': 'Verification code has expired. Please request a new one.'}), 400
+        
+        # Verify email
         user.is_email_verified = True
+        user.email_verification_code = None
         user.email_verification_token = None
         user.email_verification_sent_at = None
         db.session.commit()
-        return jsonify({'message': 'Email verified successfully. You can now log in.'}), 200
+        
+        return jsonify({
+            'message': 'Email verified successfully! You can now set your preferences.',
+            'user': user.to_dict(),
+            'preferences_setup_required': not user.preferences_set
+        }), 200
+        
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Verification failed', 'details': str(e)}), 500
@@ -356,19 +388,19 @@ def resend_verification():
                     'error': f'Please wait {remaining_time} seconds before requesting another verification email'
                 }), 429
         
-        # Generate new verification token
-        verification_token = user.generate_verification_token()
+        # Generate new verification code
+        verification_code = user.generate_verification_code()
         db.session.commit()
         
         # Send verification email
         try:
             from app.services.email_service import EmailService
             email_service = EmailService()
-            success = email_service.send_verification_email(user, verification_token)
+            success = email_service.send_verification_email(user, verification_code)
             
             if success:
                 return jsonify({
-                    'message': 'Verification email sent successfully. Please check your email.'
+                    'message': 'Verification code sent successfully. Please check your email.'
                 }), 200
             else:
                 return jsonify({'error': 'Failed to send verification email'}), 500
@@ -380,6 +412,58 @@ def resend_verification():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to resend verification email', 'details': str(e)}), 500
+
+@auth_bp.route('/setup-preferences', methods=['POST'])
+@jwt_required()
+def setup_preferences():
+    """Set user preferences after email verification"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if not user.is_email_verified:
+            return jsonify({'error': 'Email must be verified before setting preferences'}), 403
+        
+        if user.preferences_set:
+            return jsonify({'error': 'Preferences have already been set'}), 400
+        
+        data = request.get_json()
+        
+        # Set email preferences
+        preferences = {
+            'sports': data.get('sports', True),
+            'academic': data.get('academic', True),
+            'events': data.get('events', True),
+            'general': data.get('general', True),
+            'feedback_forms': data.get('feedback_forms', False),
+            'donations': data.get('donations', False)
+        }
+        
+        user.set_email_preferences(preferences)
+        user.preferences_set = True
+        
+        # Update email frequency if provided
+        if 'email_frequency' in data:
+            user.email_frequency = data['email_frequency']
+        
+        # Update year group if provided
+        if 'year_group' in data:
+            user.year_group = data['year_group']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Preferences set successfully! Welcome to KGV Bulletin Service.',
+            'user': user.to_dict(),
+            'preferences': preferences
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to set preferences', 'details': str(e)}), 500
 
 # Check if token is blacklisted
 @auth_bp.before_app_request

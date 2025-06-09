@@ -31,14 +31,29 @@ venv.bak/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 .env.local
 .env.production
+
+# Secrets and credentials
+secrets/
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+config/secrets.py
+*credentials*
+*secrets*
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 instance/
+data/
+backups/
 
 # Logs
 *.log
@@ -75,5 +90,14 @@ htmlcov/
 # Temporary files
 *.tmp
 *.bak
+*.backup
 test_*.py
 debug_*.py
+scratch_*.py
+temp_*.py
+
+# Utility scripts with potentially sensitive data
+utils/temp_*
+utils/debug_*
+utils/test_*
+*_local.py

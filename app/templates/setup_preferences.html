@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Preferences - Student Bulletin{% endblock %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-cog"></i>
+                            Setup Your Preferences
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-success mb-3">Email Verified Successfully!</h5>
+                            <p class="text-muted">Now let's customize your bulletin preferences to get the content that matters most to you.</p>
+                        </div>
+                        
+                        <form id="preferencesForm" novalidate>
+                            <!-- Email Frequency -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Email Frequency
+                                </label>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="emailFrequency" id="daily" value="daily" checked>
+                                            <label class="form-check-label" for="daily">
+                                                <strong>Daily</strong><br>
+                                                <small class="text-muted">Get updates every day</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="emailFrequency" id="weekly" value="weekly">
+                                            <label class="form-check-label" for="weekly">
+                                                <strong>Weekly</strong><br>
+                                                <small class="text-muted">Summary once a week</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="emailFrequency" id="disabled" value="disabled">
+                                            <label class="form-check-label" for="disabled">
+                                                <strong>Web Only</strong><br>
+                                                <small class="text-muted">No email notifications</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Year Group -->
+                            <div class="mb-4">
+                                <label for="yearGroup" class="form-label fw-bold">
+                                    <i class="fas fa-graduation-cap me-2"></i>
+                                    Year Group
+                                </label>
+                                <select class="form-select" id="yearGroup" required>
+                                    <option value="">Select Your Year Group</option>
+                                    <option value="7">Year 7</option>
+                                    <option value="8">Year 8</option>
+                                    <option value="9">Year 9</option>
+                                    <option value="10">Year 10</option>
+                                    <option value="11">Year 11</option>
+                                    <option value="12">Year 12</option>
+                                    <option value="13">Year 13</option>
+                                    <option value="other">Other/Staff</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Content Preferences -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-list-check me-2"></i>
+                                    Content Preferences
+                                </label>
+                                <p class="text-muted small mb-3">Choose what types of content you'd like to receive:</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefSports" checked>
+                                            <label class="form-check-label" for="prefSports">
+                                                <i class="fas fa-running text-primary me-2"></i>
+                                                <strong>Sports & Athletics</strong><br>
+                                                <small class="text-muted">Sports events, team updates, competitions</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefAcademic" checked>
+                                            <label class="form-check-label" for="prefAcademic">
+                                                <i class="fas fa-book text-success me-2"></i>
+                                                <strong>Academic</strong><br>
+                                                <small class="text-muted">Academic events, awards, achievements</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefEvents" checked>
+                                            <label class="form-check-label" for="prefEvents">
+                                                <i class="fas fa-calendar text-warning me-2"></i>
+                                                <strong>Events & Activities</strong><br>
+                                                <small class="text-muted">School events, clubs, extracurricular</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefGeneral" checked>
+                                            <label class="form-check-label" for="prefGeneral">
+                                                <i class="fas fa-info-circle text-info me-2"></i>
+                                                <strong>General</strong><br>
+                                                <small class="text-muted">General announcements and news</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefFeedback">
+                                            <label class="form-check-label" for="prefFeedback">
+                                                <i class="fas fa-comment-dots text-secondary me-2"></i>
+                                                <strong>Feedback Forms</strong><br>
+                                                <small class="text-muted">Surveys and feedback requests</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="prefDonations">
+                                            <label class="form-check-label" for="prefDonations">
+                                                <i class="fas fa-heart text-danger me-2"></i>
+                                                <strong>Donations</strong><br>
+                                                <small class="text-muted">Fundraising and donation requests</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg" id="saveBtn">
+                                    <i class="fas fa-save me-2"></i>
+                                    Save Preferences & Continue
+                                </button>
+                                <small class="text-muted text-center">You can change these preferences anytime in your profile</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is authenticated and needs preference setup
+    if (!currentUser) {
+        showAlert('Please log in to set up preferences', 'warning');
+        window.location.href = '/login';
+        return;
+    }
+    
+    const preferencesForm = document.getElementById('preferencesForm');
+    const saveBtn = document.getElementById('saveBtn');
+    
+    // Handle form submission
+    preferencesForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Collect preferences
+        const preferences = {
+            email_frequency: document.querySelector('input[name="emailFrequency"]:checked').value,
+            year_group: document.getElementById('yearGroup').value,
+            sports: document.getElementById('prefSports').checked,
+            academic: document.getElementById('prefAcademic').checked,
+            events: document.getElementById('prefEvents').checked,
+            general: document.getElementById('prefGeneral').checked,
+            feedback_forms: document.getElementById('prefFeedback').checked,
+            donations: document.getElementById('prefDonations').checked
+        };
+        
+        // Validation
+        if (!preferences.year_group) {
+            showAlert('Please select your year group', 'danger');
+            return;
+        }
+        
+        // Check if at least one content preference is selected
+        const contentSelected = preferences.sports || preferences.academic || 
+                               preferences.events || preferences.general;
+        if (!contentSelected) {
+            showAlert('Please select at least one content preference', 'danger');
+            return;
+        }
+        
+        setLoading(saveBtn, true);
+        
+        try {
+            const response = await apiCall('/auth/setup-preferences', 'POST', preferences);
+            
+            // Update current user data
+            currentUser = response.user;
+            localStorage.setItem('userData', JSON.stringify(currentUser));
+            
+            showAlert('Preferences saved successfully! Welcome to Student Bulletin Service.', 'success');
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                if (currentUser.is_admin) {
+                    window.location.href = '/admin';
+                } else {
+                    window.location.href = '/dashboard';
+                }
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Save preferences error:', error);
+            showAlert(error.message || 'Failed to save preferences. Please try again.', 'danger');
+            setLoading(saveBtn, false);
+        }
+    });
+    
+    // Show/hide email frequency options based on selection
+    const emailFrequencyInputs = document.querySelectorAll('input[name="emailFrequency"]');
+    emailFrequencyInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Could add conditional logic here if needed
+        });
+    });
+});
+</script>
+{% endblock %}

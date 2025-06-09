@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification - Student Bulletin{% endblock %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-envelope-open"></i>
+                            Email Verification
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <p class="mb-3">We've sent a 6-digit verification code to your email address.</p>
+                            <p class="text-muted">Enter the code below to verify your account:</p>
+                        </div>
+                        
+                        <form id="verificationForm" novalidate>
+                            <div class="mb-4">
+                                <label for="verificationCode" class="form-label">Verification Code</label>
+                                <input type="text" class="form-control form-control-lg text-center" 
+                                       id="verificationCode" maxlength="6" placeholder="000000" 
+                                       style="letter-spacing: 0.5em; font-family: monospace; font-size: 1.5rem;" required>
+                                <div class="form-text text-center">Enter the 6-digit code from your email</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="verifyBtn">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Verify Email
+                            </button>
+                        </form>
+                        
+                        <hr>
+                        
+                        <div class="text-center">
+                            <p class="mb-2">Didn't receive the code?</p>
+                            <button type="button" class="btn btn-outline-secondary" id="resendBtn">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Resend Code
+                            </button>
+                            <div class="mt-2">
+                                <small class="text-muted" id="resendTimer"></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const verificationForm = document.getElementById('verificationForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendTimer = document.getElementById('resendTimer');
+    const codeInput = document.getElementById('verificationCode');
+    
+    // Get user info from URL parameters or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id') || localStorage.getItem('pendingUserId');
+    const userEmail = urlParams.get('email') || localStorage.getItem('pendingUserEmail');
+    
+    if (!userId) {
+        showAlert('Missing user information. Please register again.', 'danger');
+        setTimeout(() => window.location.href = '/register', 2000);
+        return;
+    }
+    
+    // Auto-format code input
+    codeInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 6) {
+            value = value.substring(0, 6);
+        }
+        e.target.value = value;
+        
+        // Auto-submit when 6 digits are entered
+        if (value.length === 6) {
+            setTimeout(() => verificationForm.requestSubmit(), 100);
+        }
+    });
+    
+    // Handle form submission
+    verificationForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const code = codeInput.value.trim();
+        
+        if (code.length !== 6) {
+            showAlert('Please enter a 6-digit verification code', 'danger');
+            return;
+        }
+        
+        setLoading(verifyBtn, true);
+        
+        try {
+            const response = await apiCall('/auth/verify-email', 'POST', {
+                user_id: parseInt(userId),
+                code: code
+            });
+            
+            showAlert('Email verified successfully!', 'success');
+            
+            // Clear pending user data
+            localStorage.removeItem('pendingUserId');
+            localStorage.removeItem('pendingUserEmail');
+            
+            // Check if user needs to set preferences
+            if (response.preferences_setup_required) {
+                setTimeout(() => {
+                    window.location.href = '/setup-preferences';
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1000);
+            }
+            
+        } catch (error) {
+            console.error('Verification error:', error);
+            showAlert(error.message || 'Verification failed. Please try again.', 'danger');
+            setLoading(verifyBtn, false);
+        }
+    });
+    
+    // Handle resend code
+    let resendCooldown = 0;
+    
+    function updateResendTimer() {
+        if (resendCooldown > 0) {
+            resendBtn.disabled = true;
+            resendTimer.textContent = `Resend available in ${resendCooldown} seconds`;
+            resendCooldown--;
+            setTimeout(updateResendTimer, 1000);
+        } else {
+            resendBtn.disabled = false;
+            resendTimer.textContent = '';
+        }
+    }
+    
+    resendBtn.addEventListener('click', async function() {
+        if (!userEmail) {
+            showAlert('Email address not found. Please register again.', 'danger');
+            return;
+        }
+        
+        setLoading(resendBtn, true);
+        
+        try {
+            await apiCall('/auth/resend-verification', 'POST', {
+                email: userEmail
+            });
+            
+            showAlert('Verification code resent! Please check your email.', 'success');
+            
+            // Start cooldown timer
+            resendCooldown = 60; // 60 seconds
+            updateResendTimer();
+            
+        } catch (error) {
+            console.error('Resend error:', error);
+            showAlert(error.message || 'Failed to resend code. Please try again.', 'danger');
+        } finally {
+            setLoading(resendBtn, false);
+        }
+    });
+    
+    // Auto-focus code input
+    codeInput.focus();
+});
+</script>
+{% endblock %}

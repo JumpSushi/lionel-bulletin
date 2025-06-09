@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}KGV Bulletin Email Service - Home{% endblock %}
+{% block title %}Student Bulletin Email Service - Home{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -8,11 +8,11 @@
     <div class="container text-center">
         <h1 class="display-4 fw-bold mb-4">
             <i class="fas fa-envelope-open-text me-3"></i>
-            KGV Bulletin Email Service
+            Student Bulletin Email Service
         </h1>
         <p class="lead mb-5">
             Stay updated with the latest KGV school announcements delivered directly to your inbox.
-            Get personalized Year 9 highlights with smart filtering and AI-generated headlines.
+            Get personalized highlights for all year groups with smart filtering and AI-generated headlines.
         </p>
         <div class="d-flex gap-3 justify-content-center">
             <a href="/register" class="btn btn-light btn-lg px-5 py-3" id="hero-register">
@@ -43,7 +43,7 @@
                         </div>
                         <h4 class="card-title">Smart Filtering</h4>
                         <p class="card-text">
-                            Automatically filters out donation requests and feedback forms to show you only the most relevant announcements for Year 9 students.
+                            Automatically filters out donation requests and feedback forms to show you only the most relevant announcements for all year groups.
                         </p>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
                         </div>
                         <div>
                             <h5>Personalized Content</h5>
-                            <p class="text-muted">Only get announcements relevant to Year 9 students and general school updates.</p>
+                            <p class="text-muted">Only get announcements relevant to your year group and general school updates.</p>
                         </div>
                     </div>
                     
@@ -177,7 +177,7 @@
     <div class="container text-center">
         <h2 class="display-6 fw-bold mb-4">Ready to Get Started?</h2>
         <p class="lead mb-4">
-            Join other Year 9 students who are staying informed with our bulletin email service.
+            Join other KGV students who are staying informed with our bulletin email service (lmao, no spam)
         </p>
         <a href="/register" class="btn btn-light btn-lg px-5 py-3" id="cta-register">
             <i class="fas fa-rocket me-2"></i>
@@ -216,18 +216,25 @@ function updateHeroButtons() {
 
 async function loadPublicStats() {
     try {
-        // This would be a public endpoint showing general stats
-        const stats = {
-            users: 150,
-            emails: 2500,
-            items: 450
-        };
-        
-        document.getElementById('total-users').textContent = stats.users;
-        document.getElementById('emails-sent').textContent = stats.emails;
-        document.getElementById('bulletin-items').textContent = stats.items;
+        // Load real statistics from API
+        const response = await fetch('/api/public/stats');
+        if (response.ok) {
+            const stats = await response.json();
+            document.getElementById('total-users').textContent = stats.users || '-';
+            document.getElementById('emails-sent').textContent = stats.emails || '-';
+            document.getElementById('bulletin-items').textContent = stats.items || '-';
+        } else {
+            // Show placeholders if API fails
+            document.getElementById('total-users').textContent = '-';
+            document.getElementById('emails-sent').textContent = '-';
+            document.getElementById('bulletin-items').textContent = '-';
+        }
     } catch (error) {
         console.error('Failed to load stats:', error);
+        // Show placeholders on error
+        document.getElementById('total-users').textContent = '-';
+        document.getElementById('emails-sent').textContent = '-';
+        document.getElementById('bulletin-items').textContent = '-';
     }
 }
 

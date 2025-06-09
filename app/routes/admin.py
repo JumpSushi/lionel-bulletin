@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models import User, BulletinItem, EmailLog, EmailSubscription, BulletinFilter, AdminAction
@@ -554,6 +554,7 @@ def admin_delete_user(user_id):
         # Delete related records
         EmailSubscription.query.filter_by(user_id=user_id).delete()
         EmailLog.query.filter_by(user_id=user_id).delete()
+        BulletinFilter.query.filter_by(user_id=user_id).delete()
         
         db.session.delete(user)
         db.session.commit()
@@ -1196,3 +1197,114 @@ def reactivate_user(user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to reactivate user', 'details': str(e)}), 500
+
+# Scheduler Management Routes
+@admin_bp.route('/scheduler/status', methods=['GET'])
+@jwt_required()
+@admin_required
+def get_scheduler_status():
+    """Get scheduler status and jobs"""
+    try:
+        if hasattr(current_app, 'scheduler'):
+            jobs = current_app.scheduler.get_jobs()
+            return jsonify({
+                'scheduler_active': True,
+                'jobs': jobs
+            }), 200
+        else:
+            return jsonify({
+                'scheduler_active': False,
+                'message': 'Scheduler not initialized'
+            }), 200
+    except Exception as e:
+        return jsonify({'error': 'Failed to get scheduler status', 'details': str(e)}), 500
+
+@admin_bp.route('/scheduler/trigger-scraper', methods=['POST'])
+@jwt_required()
+@admin_required
+def trigger_bulletin_scraper():
+    """Manually trigger bulletin scraper"""
+    try:
+        if hasattr(current_app, 'scheduler'):
+            success = current_app.scheduler.trigger_bulletin_scraper_now()
+            if success:
+                return jsonify({'message': 'Bulletin scraper triggered successfully'}), 200
+            else:
+                return jsonify({'error': 'Failed to trigger bulletin scraper'}), 500
+        else:
+            return jsonify({'error': 'Scheduler not available'}), 503
+    except Exception as e:
+        return jsonify({'error': 'Failed to trigger scraper', 'details': str(e)}), 500
+
+@admin_bp.route('/bulletins/clear-all', methods=['POST'])
+@jwt_required()
+@admin_required
+def clear_all_bulletins():
+    """Clear all bulletin items from the database"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        
+        # Get current count
+        count = BulletinItem.query.count()
+        
+        if count == 0:
+            return jsonify({'message': 'No bulletin items to delete', 'deleted_count': 0}), 200
+        
+        # Log the action
+        log_admin_action(
+            admin_user_id=current_user_id,
+            action_type='clear_all_bulletins',
+            target_user_id=None,
+            details={'items_deleted': count}
+        )
+        
+        # Delete all bulletin items
+        BulletinItem.query.delete()
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Successfully deleted all {count} bulletin items',
+            'deleted_count': count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to clear bulletins', 'details': str(e)}), 500
+
+@admin_bp.route('/bulletins/clear-and-scrape', methods=['POST'])
+@jwt_required()
+@admin_required
+def clear_and_scrape_bulletins():
+    """Clear all bulletin items and trigger a fresh scrape"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        
+        # Step 1: Clear all bulletin items
+        count = BulletinItem.query.count()
+        
+        # Log the action
+        log_admin_action(
+            admin_user_id=current_user_id,
+            action_type='clear_and_scrape_bulletins',
+            target_user_id=None,
+            details={'items_deleted': count}
+        )
+        
+        if count > 0:
+            BulletinItem.query.delete()
+            db.session.commit()
+        
+        # Step 2: Trigger fresh scrape
+        from app.services.bulletin_scraper import BulletinScraperService
+        scraper = BulletinScraperService()
+        new_count = scraper.scrape_and_save_bulletins(max_items=50)
+        
+        return jsonify({
+            'message': f'Successfully cleared {count} items and added {new_count} new items',
+            'deleted_count': count,
+            'new_count': new_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to clear and scrape bulletins', 'details': str(e)}), 500

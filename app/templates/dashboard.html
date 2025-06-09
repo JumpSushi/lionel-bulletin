@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - KGV Bulletin Service{% endblock %}
+{% block title %}Dashboard - Student Bulletin Service{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -50,7 +50,7 @@
                 <div class="card-body">
                     <i class="fas fa-star fa-2x text-muted mb-2"></i>
                     <div class="h5 mb-1" id="year9Items">0</div>
-                    <div class="small text-muted">Year 9 Items</div>
+                    <div class="small text-muted">Relevant Items</div>
                 </div>
             </div>
         </div>
@@ -85,7 +85,7 @@
         <div class="col-md-3">
             <select class="form-select" id="categoryFilter">
                 <option value="">All Categories</option>
-                <option value="year9">Year 9 Specific</option>
+                <option value="year9">Specifically Targeted</option>
                 <option value="general">General</option>
                 <option value="sports">Sports</option>
                 <option value="academic">Academic</option>
@@ -413,13 +413,13 @@ function updateSubscriptionUI() {
     if (userSubscribed) {
         button.className = 'btn btn-warning';
         text.textContent = 'Disable Notifications';
-        message.textContent = 'You are subscribed to email notifications for Year 9 bulletins.';
+        message.textContent = 'You are subscribed to email notifications for relevant bulletins.';
         status.style.display = 'block';
         status.className = 'alert alert-success';
     } else {
         button.className = 'btn btn-success';
         text.textContent = 'Enable Notifications';
-        message.textContent = 'Enable email notifications to receive Year 9 bulletins automatically.';
+        message.textContent = 'Enable email notifications to receive relevant bulletins automatically.';
         status.style.display = 'block';
         status.className = 'alert alert-info';
     }
@@ -601,7 +601,7 @@ function displayBulletins(bulletins) {
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <small class="text-muted">
                             <i class="fas fa-calendar"></i> ${displayDate}
-                            ${bulletin.is_year9 ? '<span class="badge bg-success ms-2">Year 9</span>' : ''}
+                            ${bulletin.is_year9 ? '<span class="badge bg-success ms-2">Targeted</span>' : ''}
                             ${bulletin.category ? `<span class="badge bg-secondary ms-1">${bulletin.category}</span>` : ''}
                         </small>
                         <button class="btn btn-sm btn-link" onclick="viewBulletinDetails('${bulletin.id}', '${encodeURIComponent(title)}')">
@@ -701,7 +701,7 @@ function viewBulletinDetails(bulletinId, encodedTitle) {
         <div class="bulletin-detail">
             <div class="bulletin-meta mb-3">
                 <span class="badge bg-secondary me-2"><i class="fas fa-calendar"></i> ${displayDate}</span>
-                ${bulletin.is_year9 ? '<span class="badge bg-success me-2">Year 9</span>' : ''}
+                ${bulletin.is_year9 ? '<span class="badge bg-success me-2">Targeted</span>' : ''}
                 ${bulletin.category ? `<span class="badge bg-info me-2">${bulletin.category}</span>` : ''}
             </div>
             

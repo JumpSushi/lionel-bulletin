@@ -52,6 +52,14 @@ def create_app(config_name='default'):
     migrate.init_app(app, db)
     cors.init_app(app)
     
+    # Initialize scheduler service (only in production or when explicitly enabled)
+    enable_scheduler = os.getenv('ENABLE_SCHEDULER', 'true').lower() == 'true'
+    if enable_scheduler:
+        from app.services.scheduler_service import SchedulerService
+        scheduler = SchedulerService()
+        scheduler.init_app(app)
+        app.scheduler = scheduler  # Store reference for access in routes
+    
     # Production security enhancements
     if config_name == 'production':
         try:
@@ -197,23 +205,30 @@ def create_app(config_name='default'):
     
     # Create tables
     with app.app_context():
-        db.create_all()
-        
-        # Create admin user if it doesn't exist
-        from app.models import User
-        admin_email = os.getenv('ADMIN_EMAIL', 'admin@kgv.edu.hk')
-        admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
-        
-        if not User.query.filter_by(email=admin_email).first():
-            admin_user = User(
-                email=admin_email,
-                name='Administrator',
-                is_admin=True,
-                is_active=True
-            )
-            admin_user.set_password(admin_password)
-            db.session.add(admin_user)
-            db.session.commit()
-            print(f"Admin user created: {admin_email}")
+        try:
+            db.create_all()
+            
+            # Create admin user if it doesn't exist
+            from app.models import User
+            admin_email = os.getenv('ADMIN_EMAIL', 'admin@example.com')
+            admin_password = os.getenv('ADMIN_PASSWORD')
+            
+            # Only create admin user if password is provided via environment variable
+            if admin_password and not User.query.filter_by(email=admin_email).first():
+                admin_user = User(
+                    email=admin_email,
+                    name='Administrator',
+                    is_admin=True,
+                    is_active=True,
+                    is_email_verified=True,
+                    preferences_set=True
+                )
+                admin_user.set_password(admin_password)
+                db.session.add(admin_user)
+                db.session.commit()
+                print(f"Admin user created: {admin_email}")
+        except Exception as e:
+            print(f"Warning: Error during database initialization: {e}")
+            # Continue anyway, as tables might already exist
     
     return app

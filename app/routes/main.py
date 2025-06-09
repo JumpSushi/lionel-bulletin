@@ -5,6 +5,7 @@ from app.models import User, BulletinItem, EmailLog, EmailSubscription
 from datetime import datetime, timedelta
 from sqlalchemy import func
 import os
+import psutil
 from functools import wraps
 
 main_bp = Blueprint('main', __name__)
@@ -43,6 +44,14 @@ def login_page():
 def register_page():
     return render_template('register.html')
 
+@main_bp.route('/verify-email')
+def verify_email_page():
+    return render_template('verify_email.html')
+
+@main_bp.route('/setup-preferences')
+def setup_preferences_page():
+    return render_template('setup_preferences.html')
+
 @main_bp.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
@@ -60,6 +69,69 @@ def profile():
 @main_bp.route('/static/<path:filename>')
 def static_files(filename):
     return send_from_directory('static', filename)
+
+# Health check endpoint for monitoring
+@main_bp.route('/health')
+def health_check():
+    """Health check endpoint for production monitoring"""
+    try:
+        health_data = {
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'version': '1.0.0',
+            'checks': {}
+        }
+        
+        # Database check
+        try:
+            db.session.execute('SELECT 1')
+            health_data['checks']['database'] = 'healthy'
+        except Exception as e:
+            health_data['checks']['database'] = f'error: {str(e)}'
+            health_data['status'] = 'unhealthy'
+        
+        # System metrics (optional, requires psutil)
+        try:
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            health_data['checks']['system'] = {
+                'cpu_percent': cpu_percent,
+                'memory_percent': memory.percent,
+                'disk_percent': (disk.used / disk.total) * 100
+            }
+            
+            # Alert if resources are critically low
+            if memory.percent > 90 or (disk.used / disk.total) * 100 > 90:
+                health_data['status'] = 'warning'
+                
+        except Exception:
+            # System metrics are optional
+            health_data['checks']['system'] = 'unavailable'
+        
+        # Application check
+        try:
+            user_count = User.query.count()
+            bulletin_count = BulletinItem.query.count()
+            health_data['checks']['application'] = {
+                'users': user_count,
+                'bulletins': bulletin_count
+            }
+        except Exception as e:
+            health_data['checks']['application'] = f'error: {str(e)}'
+            health_data['status'] = 'unhealthy'
+        
+        # Return appropriate HTTP status
+        status_code = 200 if health_data['status'] == 'healthy' else 503
+        return jsonify(health_data), status_code
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'timestamp': datetime.utcnow().isoformat(),
+            'error': str(e)
+        }), 500
 
 # API Routes
 @main_bp.route('/api/dashboard/stats', methods=['GET'])

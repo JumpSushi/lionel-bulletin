@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login - KGV Bulletin Email Service{% endblock %}
+{% block title %}Login - Student Bulletin Email Service{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -11,7 +11,7 @@
                     <div class="text-center mb-4">
                         <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
                         <h2 class="fw-bold">Welcome Back</h2>
-                        <p class="text-muted">Sign in to your KGV Bulletin account</p>
+                        <p class="text-muted">Sign in to your Student Bulletin account</p>
                     </div>
                     
                     <form id="loginForm">
@@ -41,9 +41,15 @@
                     <hr>
                     
                     <div class="text-center">
-                        <p class="mb-0">
+                        <p class="mb-2">
                             Don't have an account? 
                             <a href="/register" class="text-primary fw-bold">Create one here</a>
+                        </p>
+                        <p class="mb-0">
+                            <small>
+                                Need to verify your email? 
+                                <a href="/verify-email" class="text-secondary">Verify here</a>
+                            </small>
                         </p>
                     </div>
                 </div>
@@ -112,17 +118,34 @@ document.addEventListener('DOMContentLoaded', function() {
             
             showAlert('Login successful! Redirecting...', 'success');
             
-            // Redirect based on user role
-            setTimeout(() => {
-                if (response.user.is_admin) {
-                    window.location.href = '/admin';
-                } else {
-                    window.location.href = '/dashboard';
-                }
-            }, 1000);
+            // Check if user needs to set preferences
+            if (response.preferences_setup_required) {
+                setTimeout(() => {
+                    window.location.href = '/setup-preferences';
+                }, 1000);
+            } else {
+                // Redirect based on user role
+                setTimeout(() => {
+                    if (response.user.is_admin) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }, 1000);
+            }
             
         } catch (error) {
             console.error('Login error:', error);
+            
+            // Handle email verification required error
+            if (error.message && error.message.includes('Email not verified')) {
+                showAlert('Please verify your email address before logging in.', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/verify-email';
+                }, 2000);
+                return;
+            }
+            
             showAlert(error.message || 'Login failed. Please check your credentials.', 'danger');
             setLoading(loginBtn, false);
             loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';

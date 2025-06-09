@@ -14,17 +14,17 @@ from logging.handlers import RotatingFileHandler
 def create_admin_user(app):
     """Create default admin user if it doesn't exist"""
     with app.app_context():
-        admin = User.query.filter_by(email='admin@kgv.edu.hk').first()
+        admin = User.query.filter_by(email='huais2@kgv.hk').first()
         if not admin:
             admin = User(
                 name='Admin User',
-                email='admin@kgv.edu.hk',
+                email='huais2@kgv.hk',
                 is_admin=True
             )
-            admin.set_password('admin123')
+            admin.set_password('no you')
             db.session.add(admin)
             db.session.commit()
-            print("Default admin user created: admin@kgv.edu.hk/admin123")
+            print("Default admin user created: huais2@kgv.hk/no you")
         else:
             print("Admin user already exists")
 
@@ -64,8 +64,8 @@ def main():
     host = os.environ.get('FLASK_HOST', '127.0.0.1')
     port = int(os.environ.get('FLASK_PORT', 8081))  # Changed to 8081
     debug = os.environ.get('FLASK_ENV') == 'development'
-    
-    print(f"""
+    #this is NOT THE REAL PASSWORD, DUH
+    print(f""" 
     ╔══════════════════════════════════════════════════════════╗
     ║                KGV Bulletin Service                      ║
     ║                                                          ║
@@ -75,8 +75,8 @@ def main():
     ║  📧 Email: {'Configured' if app.config.get('MAIL_SERVER') else 'Not configured'}                                  ║
     ║                                                          ║
     ║  Default admin credentials:                              ║
-    ║  Email: admin@kgv.edu.hk                                 ║
-    ║  Password: admin123                                      ║
+    ║  Email: huais2@kgv.hk                                    ║
+    ║  Password: no you                                        ║ 
     ╚══════════════════════════════════════════════════════════╝
     """)
     
@@ -90,7 +90,7 @@ def main():
     except KeyboardInterrupt:
         print("\n\n🛑 Application stopped by user")
     except Exception as e:
-        print(f"\n💥 Application error: {e}")
+        print(f"\n💥 Application error: {e}") #get nuked
         app.logger.error(f"Application startup error: {e}")
 
 if __name__ == '__main__':
